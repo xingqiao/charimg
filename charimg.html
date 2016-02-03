@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+<meta name="description" content="字符画生成">
+<title>字符画生成</title>
+<meta name="description" content="" />
+<meta name="keywords" content="字符画,QQ音乐" />
+<meta itemprop="name" content="字符画生成" />
+<meta itemprop="description" content="字符画生成" />
+<meta itemprop="image" content="http://i.gtimg.cn/music/common/upload/t_cm3_photo_publish/1445333201513143650.png" />
+<style type="text/css">
+html{font-family:"微软雅黑";font-size:16px}body{letter-spacing:.02em;margin:0;background:#303235;color:#303235;min-width:1000px}a{color:#303235;text-decoration:none}li{list-style:none}button{margin:0 .5em .5em 0;padding:.5em 2em;background:red;color:#fff;border:2px solid red;outline:0;outline-offset:1px;cursor:pointer}button:hover{opacity:.8}button:focus{outline:1px #000 dotted}button:active{background:#000;color:#fff;border-color:#000}button[disabled]{opacity:.8}textarea{display:block;min-width:200px;min-height:250px;margin:0;padding:10px;box-sizing:border-box;overflow-x:auto;width:100%;resize:vertical}article{position:fixed;top:2.5rem;right:2.5rem;bottom:2.5rem;left:2.5rem;background:#f2eee2;padding:3rem 6rem 3rem 6rem;text-align:center;box-shadow:0 0 5px #000;overflow-x:hidden;overflow-y:auto;-ms-overflow-style:-ms-autohiding-scrollbar;z-index:1}header h1{font-weight:400;font-size:4rem;margin:1.5rem 0 0}header dd{display:inline-block;margin:0 2em 0 0}header dd.current{color:red}header dd:after{content:">";position:relative;left:1em;color:#303235}header dd:last-child::after{content:""}section{max-width:1000px;margin:1em auto;position:relative;text-align:left}.watermark{display:inline-block;font-size:3rem;color:rgba(33,33,33,0.2);text-shadow:0 0 .5em;text-align:center;margin-top:2em;cursor:pointer}.watermark:hover{color:rgba(33,33,33,0.6)}.flex{display:flex}.panel{margin:1em}.panel-img{display:inline-block;margin:1em 0;padding:1em;border:1px solid #ccc;background-color:#e1e1e1;box-shadow:0 0 .5em #aaa}.panel-img:hover{box-shadow:.5em .5em .5em #aaa;background-color:#efefef}.panel-img figcaption{width:100%;max-width:500px;height:2em;display:block;font-size:1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.panel-img canvas{outline:1px solid #aaa}.panel-img .content{font-size:0}.panel .content{position:relative}.panel .content canvas{position:absolute;top:0;left:0}.panel .content canvas:first-child{position:static}.panel-menu>div{display:none}.panel-btn{margin:1em 0}.flex-1{flex:1}footer{position:fixed;z-index:100;bottom:0;left:0;right:0;color:#fff;font-size:.9rem}footer .version{position:absolute;padding:0 2.5rem;right:0;bottom:0;background:#303235;line-height:2.5rem}footer .version::before{content:"";position:absolute;left:.5em;bottom:.4em;width:1.8em;height:1.8em;background:url(http://i.gtimg.cn/music/common/upload/t_cm3_photo_publish/1445333201513143650.png?max_age=2592000) no-repeat;background-size:cover}.ta{text-align:center}.console{max-height:10em;overflow-y:auto;margin:1em 0;border:1px solid #888;padding:.5em;max-width:500px;word-wrap:break-word;word-break:break-all;}
+details{margin-top:1em;}
+details>div{margin-left:1.5em;}
+.js_item>label,.js_item>input,.js_item>output{vertical-align:middle;}
+.js_iconlist_preview{margin:1em 0;max-height:250px;overflow-y:auto;}
+.js_icon_item{position:relative;cursor:pointer;width:64px;height:64px;display:inline-block;border:2px solid transparent;margin-right:.5em}
+.js_icon_item.selected{border:2px solid #26f;}
+.js_icon_item.selected:before,.js_icon_item.selected:after{content:"";position:absolute;right:0;top:0;}
+.js_icon_item.selected:before{border-top:2em solid #26f;border-left:2em solid transparent;}
+.js_icon_item.selected:after{content:"✔";color:#fff;}
+.js_icon_item.selected{border:2px solid #26f;}
+.js_icon_item img,.js_icon_item canvas{display:block;max-width:64px;max-height:64px;margin:0 auto;}
+
+</style>
+</head>
+<body>
+<article>
+	<header>
+		<h1>字符画生成</h1>
+		<nav class="js_nav">
+			<dl>
+				<dd>上传图片</dd>
+				<dd>设置填充内容</dd>
+				<dd>生成字符画</dd>
+			</dl>
+		</nav>
+	</header>
+	<div>
+		<div class="ta">
+			<label><input type="checkbox" class="js_global_setting" data-name="async" /><span>异步模式</span></label>
+			<label title="不阻碍页面响应"><input type="checkbox" class="js_global_setting" data-name="workerJs" data-value="ci.js" /><span>开启worker</span></label>
+			<label title="根据meta信息调整图片方向"><input type="checkbox" class="js_global_setting" data-name="orientation" checked /><span>识别图片方向</span></label>
+			<label title="勾选时越靠前的词语优先级越高"><input type="checkbox" class="js_global_setting" data-name="random" /><span>随机展现列表中的词语</span></label>
+		</div>
+	</div>
+	<div class="watermark js_selectfile" style="display:none">点击选择图片<br>或拖放图片到本页面</div>
+	<section class="main js_main">
+		<div class="flex js_body">
+			<div class="js_panel panel"></div>
+			<div class="js_set panel flex-1" style="display:none">
+				<div class="js_priview"></div>
+				<div class="panel-menu">
+					<div class="js_menu" data-nav="0">
+						<h3>设置图片尺寸（生成图）</h3>
+						<label>图片大小</label>
+						<input class="js_setting" data-name="size" data-unit="px" type="range" min="800" max="3000" step="1" value="1600">
+						<output>1600px</output>
+					</div>
+					<div class="js_menu" data-nav="1">
+						<h3>录入词语或填充图案</h3>
+						<div>
+							<p>词语列表，每行一个，最好每个词语的字数不超过10</p>
+							<textarea class="js_wordlist"></textarea>
+						</div>
+						<div>
+							<p>填充图案列表，最好选择正方形的图，只会选用勾选的图</p>
+							<input class="js_iconlist" type="file" multiple />
+							<div class="js_iconlist_preview"></div>
+						</div>
+					</div>
+					<div class="js_menu" data-nav="2">
+						<div class="js_item">
+							<label>轮廓阈值</label>
+							<input class="js_setting" data-name="threshold" type="range" min="0" max="1" step="0.01" value="0.5">
+							<output>0.5</output>
+						</div>
+						<details open>
+							<summary>填充设置</summary>
+							<div class="js_item">
+								<label>最小填充大小</label>
+								<input class="js_setting" data-name="fontSize" data-unit="px" type="range" min="12" max="128" step="1" value="12">
+								<output>12px</output>
+							</div>
+							<div class="js_item">
+								<label>最大填充倍数</label>
+								<input class="js_setting" data-name="fontZoom" type="range" min="1" max="15" step="1" value="10">
+								<output>10</output>
+							</div>
+							<div class="js_item">
+								<label>竖排文字比例</label>
+								<input class="js_setting" data-name="vertical" type="range" min="0" max="1" step="0.1" value="0">
+								<output>0.0</output>
+							</div>
+							<div class="js_item">
+								<label>文字颜色</label>
+								<input class="js_setting" data-name="fontColor" type="color" value="#000000">
+								<output>#000000</output>
+							</div>
+							<div class="js_item" title="勾选后会将填充图案拉伸成正方形">
+								<label>拉伸填充图案</label>
+								<input class="js_setting" data-name="square" type="checkbox">
+							</div>
+							<div class="js_item" title="勾选后所有填充内容都只会用一次，不会重复">
+								<label>只填充一次</label>
+								<input class="js_setting" data-name="useOnes" type="checkbox">
+							</div>
+						</details>
+						<details open>
+							<summary>背景设置</summary>
+							<div class="js_item">
+								<label>背景色</label>
+								<input class="js_setting" data-name="backgroundColor" type="color" value="#ffffff">
+								<output>#ffffff</output>
+							</div>
+							<div class="js_item">
+								<label>原图阴影颜色</label>
+								<input class="js_setting" data-name="shadowColor" type="color" value="#000000">
+								<output>#000000</output>
+							</div>
+							<div class="js_item">
+								<label>原图阴影透明度</label>
+								<input class="js_setting" data-name="shadowOpacity" type="range" min="0" max="1" step="0.1" value="0.2">
+								<output>0.2</output>
+							</div>
+							<div class="js_item">
+								<label>背景图</label>
+								<input class="js_setting" data-name="backgroundImg" type="file">
+							</div>
+							<div class="js_item">
+								<label>背景图透明度</label>
+								<input class="js_setting" data-name="backgroundImgOpacity" type="range" min="0" max="1" step="0.1" value="1">
+								<output>1</output>
+							</div>
+						</details>
+						<details open>
+							<summary>水印设置</summary>
+							<div class="js_item">
+								<label>水印图</label>
+								<input class="js_setting" data-name="watermarkImg" type="file">
+							</div>
+							<div class="js_item">
+								<label>水印图透明度</label>
+								<input class="js_setting" data-name="watermarkImgOpacity" type="range" min="0" max="1" step="0.1" value="0.9">
+								<output>0.9</output>
+							</div>
+						</details>
+					</div>
+				</div>
+				<div class="panel-btn js_btn_1">
+					<button class="js_clear_word" type="button">清空</button>
+					<button class="js_next" type="button">下一步</button>
+					<button class="js_reload" type="button">更换图片</button>
+				</div>
+				<div class="panel-btn js_btn_2" style="display:none">
+					<button class="js_reload" type="button">更换图片</button>
+					<button class="js_prev" type="button">设置填充内容</button>
+					<button class="js_redo" type="button">重新布局</button>
+					<button class="js_refresh" type="button">重新生成</button>
+					<button class="js_submit" type="button">确认生成</button>
+				</div>
+			</div>
+		</div>
+	</section>
+</article>
+<footer>
+	<span class="version">请使用 IE11+/Chrome 浏览器访问该页面</span>
+</footer>
+</body>
+<script type="text/javascript" src="http://imgcache.gtimg.cn/music/ct/jquery-2.1.4.min.js?max_age=2592000"></script>
+<!-- <script type="text/javascript" src="jquery-2.1.4.min.js?max_age=2592000"></script> -->
+<script type="text/javascript" src="ci.js"></script>
+<script type="text/javascript">
+
+var Page = {
+	obj: {},
+	setting: {
+		size: 1600,
+		viewSize: 500,
+		threshold: 0.5,	// 轮廓阈值
+		fontFamily: ["黑体"],	// 字体
+		// fontFamily: ["黑体", "微软雅黑", "宋体"],	// 字体
+		fontFamily: ["微软雅黑"],	// 字体
+		fontSize: 12,	// 基本字体大小
+		fontZoom: 10,	// 最大字体大小倍数
+		vertical: 0,	// 竖排文字比例
+		fontColor: "#000000",	// 文字颜色
+		backgroundColor: "#ffffff",	// 背景色
+		shadowColor: "#000000",	// 原图阴影颜色
+		shadowOpacity: 0.2,	// 原图阴影透明度
+		backgroundImg: null,	// 背景图
+		backgroundImgOpacity: 1,	// 背景图透明度
+		watermarkImg: null,	// 水印图
+		watermarkImgOpacity: 0.9	// 水印图透明度
+	},
+	wordList: [
+		"童年", "默", "李白", "我们不该这样的", "陪你度过漫长岁月", "不将就", "演员", "See You Again", "平凡之路", "可惜没如果", "Fantastic Baby", "LOSER", "恋人心", "南山南", "年轮", "追梦赤子心", "模特", "入戏太深", "有个爱你的人不容易", "再见", "喜欢你", "帝都", "好久不见", "Sleep Alone", "天后", "匆匆那年", "LOVE", "小苹果", "曾经的你", "夜空中最亮的星", "丑八怪", "青春修炼手册", "夏洛特烦恼", "红玫瑰", "江南", "闹够了没有", "相依为命", "泡沫", "Sugar", "愿得一人心", "我们只差一点点", "给我一个理由忘记", "冬天的秘密", "忘情水", "妈妈", "我好想你", "IF YOU", "不再见", "Love Yourself", "GOOD BOY"
+	],
+	indexTable: [],
+	renderTable: [],
+
+	log: function(text) {
+		if (!Page.logIndex) {
+			Page.logIndex = 0;
+		}
+		console.log.apply(console, arguments);
+		if (!Page.$log || !Page.$log.length) {
+			Page.$log = $(".js_console");
+		}
+		if (Page.$log.length) {
+			Page.$log.show().append($("<div>").text("[" + Page.logIndex + "] " + Array.prototype.join.call(arguments, " "))).scrollTop(Page.$log[0].scrollHeight);
+			Page.logIndex++;
+		}
+	},
+
+	// 切换导航显示
+	nav: function(cur, target) {
+		index = cur ? Math.abs(cur) : 0;
+
+		// 切换导航
+		$(".js_nav .current")
+			.not($(".js_nav dd:eq(" + index + ")").addClass("current"))
+			.removeClass("current");
+
+		// 标记按钮
+		$(".js_next").attr("data-target", target || (index + 1));
+
+		// 菜单切换
+		var $curMenu = $(".js_menu[data-nav=" + index + "]").show();
+		$(".js_menu").not($curMenu).hide();
+
+		// 其他初始化操作
+		if (index == 0) {
+			if (cur == null) {
+				// 显示水印提示
+				$(".js_selectfile").fadeIn(500);
+			} else {
+				Page.obj.$set.fadeIn();
+			}
+		} else if (index == 1) {
+			// 录入词语列表
+			$(".js_btn_1").show();
+			$(".js_btn_2").hide();
+			this.obj.$preview.hide();
+			this.obj.$set.find(".js_wordlist").val(this.wordList.join("\n")).trigger("change");
+		} else if (index == 2) {
+			// 生成字符画
+			$(".js_btn_1").hide();
+			$(".js_btn_2").show();
+			CI.woodcut(Page.obj.canvas.img, {
+				target: this.obj.canvas.preview,
+				threshold: this.setting.threshold
+			});
+			this.obj.$preview.show();
+			this.createCharImg(true);
+		}
+	},
+
+	createImgFigure: function(opts) {
+		return $("<figure>")
+			.addClass("panel-img " + (opts.className || ""))
+			.append($("<figcaption>").text(opts.title || ""))
+			.append($("<div>").addClass("content").append(opts.content));
+	},
+
+	// 加载图片到canvas
+	loadImgToCanvas: function() {
+		var size = this.setting.size,
+			viewSize = this.setting.viewSize;
+		// 加载图片到canvas
+		var c = CI.loadImgToCanvas(this.obj.img, {width: size, height: size, viewWidth: viewSize, viewHeight: viewSize, backgroundColor: "#fff"});
+		var o = {
+			width: c.width,
+			height: c.height,
+			img: this.obj.img,
+			canvas: {
+				img: c.canvas
+			}
+		};
+
+		// 加载其他图层
+		o.canvas.bg = CI.createBgCanvas(o.width, o.height, viewSize, viewSize);
+		o.canvas.cover = CI.createCanvas(o.width, o.height, viewSize, viewSize, "cover");
+		o.canvas.cover.className = "js_cover";
+
+		$.extend(this.obj, c, o);
+
+		if (this.obj.$workbench) {
+			this.obj.$workbench.find(".content").html("").append(this.obj.canvas.bg, this.obj.canvas.img, this.obj.canvas.text, this.obj.canvas.shadow, this.obj.canvas.cover);
+		}
+
+		// 预览
+		this.obj.canvas.preview = CI.createCanvas(this.obj.width, this.obj.height, .5 * viewSize, .5 * viewSize);
+		this.obj.$preview = this.createImgFigure({title: "预览", content: this.obj.canvas.preview});
+		$(".js_priview").html("").append(this.obj.$preview.hide());
+	},
+
+	// 加载图片文件
+	loadImgFile: function(file) {
+		if (file) {
+			CI.openImgFile(file, function(err, img){
+				if (err) {
+					return alert(err);
+				}
+
+				// 隐藏水印
+				$(".watermark").hide();
+
+				// 图片信息
+				Page.obj.img = img;
+				var title = "" + file.name + " （原始大小：" + img.width  + " ⨯ " + img.height + "）";
+				Page.log("加载图片：" + title);
+
+				// 展示图片
+				Page.loadImgToCanvas();
+				var cWidth = $(".js_body").width();
+				Page.obj.$workbench = Page.createImgFigure({title: title, content: [Page.obj.canvas.bg, Page.obj.canvas.img, Page.obj.canvas.text, Page.obj.canvas.cover], wrap: "panel panel-img"})
+					.css({"display": "none", "margin-left": (cWidth - Page.setting.viewSize - 16) / 2})
+					.appendTo(".js_panel")
+					.fadeIn()
+					.delay(500).animate({marginLeft: 0}, 500, function() {
+						Page.nav(0);	// 切换到设置图片大小
+					});
+
+				Page.obj.$workbench.append($("<div>").addClass("console js_console").hide());
+			});
+		};
+	},
+
+	// 解析词语列表
+	getWordList: function() {
+		var wordList = [];
+
+		// 填充图
+		$("img,canvas", ".js_icon_item.selected").each(function(i, img) {
+			wordList.push(img);
+		});
+
+		// 填充词
+		if (Page.wordList && Page.wordList.length) {
+			wordList = wordList.concat(Page.wordList);
+		}
+
+		if (!wordList.length) {
+			wordList = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+		}
+
+		return wordList;
+	},
+
+	// 生成字符画
+	createCharImg: function(type) {
+		var self = this;
+		var wordList = Page.getWordList();
+		if (type == 2) {
+			// 重新渲染
+		} else if (type == 1) {
+			// 重新计算布局
+			Page.renderTable = [];
+		} else {
+			// 重新生成
+			Page.indexTable = [];
+			Page.renderTable = [];
+		}
+
+		var time = new Date();
+		var time2 = time;
+		console.time("createCharImg");
+
+		Page.obj.canvas.img.style.display = "none";
+		CI.createCharImg(Page.obj.canvas.cover, $.extend({
+			indexTable: Page.indexTable,
+			renderTable: Page.renderTable,
+			img: Page.obj.canvas.img,
+			wordList: wordList,
+			onprogress: function() {
+				Page.log("[" + this.index + "/" + this.count + "]", new Date() - time, new Date() - time2);
+				time2 = new Date();
+			},
+			onended: function() {
+				console.timeEnd("createCharImg");
+				self.obj.$workbench.find("figcaption").text("在图片上右键单击选择“另存为”即可下载到本地");
+			}
+		}, Page.setting));
+	},
+
+	// 性能测试
+	test: function(n) {
+		var wordList = Page.getWordList();
+		Page.obj.canvas.img.style.display = "none";
+
+		n = n > 0 ? n : 5;
+		var result = [0, 0, 0, 0, 0, 0, 0, 0];
+
+		function _test(i) {
+			var time = new Date();
+			console.time("test_" + i);
+
+			Page.indexTable = [];
+			Page.renderTable = [];
+			CI.createCharImg(Page.obj.canvas.cover, $.extend({
+				indexTable: Page.indexTable,
+				renderTable: Page.renderTable,
+				img: Page.obj.canvas.img,
+				wordList: wordList,
+				onprogress: function(status) {
+					result[status] += new Date() - time;
+					time = new Date();
+				}
+			}, Page.setting));
+			console.timeEnd("test_" + i);
+
+			if (i < n) {
+				setTimeout(function() {
+					_test(i + 1);
+				}, 0);
+			} else {
+				Page.log("result: ")
+				var all = 0;
+				for (var i = 0; i < result.length; i++) {
+					result[i] /= n;
+					all += result[i];
+					Page.log(i + ": " + result[i]);
+				}
+				Page.log("all: " + all);
+			}
+		}
+		_test(0);
+	},
+
+	// 初始化
+	init: function() {
+		if (!window.FileReader) {
+			alert("当前浏览器不支持该页面，请升级到IE11，或更换Chrome浏览器。")
+		} else {
+			$(document)
+				// 选择文件
+				.on("dragover dragleave dragend", function(e){return false})
+				.on("drop", function(e){
+					Page.loadImgFile(e.originalEvent.dataTransfer.files[0]);
+					return false;
+				})
+				.on("click", ".js_selectfile", function() {
+					var $o = $("#photo-input");
+					if (!$o.length) {
+						$o = $('<input type="file" id="photo-input" style="display:none" accept="image/*">').change(function(){
+							Page.loadImgFile(this.files[0]);
+						}).appendTo("body");
+					};
+					$o.trigger("click");
+				})
+
+				// 词语列表
+				.on("change", ".js_wordlist", function(e) {
+					var $o = $(this).next("output");
+					if (!$o.length) {
+						$o = $("<output>").insertAfter(this);
+					}
+					var list = this.value.split("\n");
+					Page.wordList = [];
+					$.each(this.value.split("\n"), function(i, w) {
+						if (w) {
+							Page.wordList.push(w.trim());
+						}
+					});
+					Page.log("已录入 " + Page.wordList.length + " 个词");
+					$o.text("已录入 " + Page.wordList.length + " 个词");
+				})
+				// 填充图标列表
+				.on("change", ".js_iconlist", function(e) {
+					for (var i = 0; i < this.files.length; i++) {
+						CI.openImgFile(this.files[i], {orientation: false}, function(err, canvas) {
+							if (!err) {
+								$("<div>")
+									.addClass("js_icon_item selected")
+									.append(canvas)
+									.appendTo(".js_iconlist_preview");
+							}
+						});
+					}
+					this.value = "";
+				})
+				.on("click", ".js_icon_item", function() {
+					$(this).toggleClass("selected");
+				})
+
+				// 设置
+				.on("change input", ".js_setting", function(e) {
+					var $this = $(this),
+						name = $this.attr("data-name"),
+						value = this.type == "checkbox" ? this.checked : this.value;
+					$this.next("output").text($this.val() + ($this.attr("data-unit") || ""));
+					if (e.type == "change") {
+						var type = 0;
+						if (name == "size") {
+							// 更改图片大小
+							Page.setting.size = value;
+							Page.loadImgToCanvas();
+							return;
+						} else if (/^(backgroundImg|watermarkImg)$/.test(name)) {
+							if (this.files && this.files[0]) {
+								CI.openImgFile(this.files && this.files[0], function(err, img){
+									Page.setting[name] = img || null;
+									Page.createCharImg(2);
+								});
+								return;
+							} else {
+								delete Page.setting[name];
+							}
+						} else if (/^(threshold|fontSize)$/.test(name)) {
+							Page.setting[name] = value;
+						} else if (/^(fontZoom|vertical|square|useOnes)$/.test(name)) {
+							Page.setting[name] = value;
+							type = 1;
+						} else {
+							// /fontColor|backgroundColor|shadowOpacity|shadowColor|backgroundImgOpacity|watermarkImgOpacity/
+							Page.setting[name] = value;
+							type = 2;
+						}
+						Page.createCharImg(type);
+					} else if (e.type == "input") {
+						if (name == "threshold") {
+							Page.setting.threshold = value;
+							if (Page.obj.canvas && Page.obj.canvas.img) {
+								CI.woodcut(Page.obj.canvas.img, {
+									target: Page.obj.canvas.preview,
+									threshold: Page.setting.threshold
+								});
+							}
+						}
+					}
+				})
+				.on("change", ".js_global_setting", function() {
+					var $this = $(this),
+						name = $this.attr("data-name"),
+						value = $this.attr("data-value");
+					CI.setting[name] = this.checked ? (value || true) : false;
+				})
+
+				.on("click", ".js_next", function(e) {
+					Page.nav($(this).attr("data-target"));
+				})
+				.on("click", ".js_reload", function(e) {
+					location.reload();
+				})
+				.on("click", ".js_prev", function(e) {
+					Page.nav(1);
+				})
+				.on("click", ".js_redo", function(e) {
+					Page.createCharImg(1);
+				})
+				.on("click", ".js_refresh", function(e) {
+					Page.createCharImg(0);
+				})
+				.on("click", ".js_clear_word", function(e) {
+					$(".js_wordlist").val("").trigger("change");
+					$(".js_iconlist_preview").html("");
+				})
+				.on("click", ".js_submit", function(e) {
+					window.open(Page.obj.canvas.cover.toDataURL());
+				});
+
+			$(".js_setting").each(function() {
+				var name = this.getAttribute("data-name"),
+					value = this.type == "checkbox" ? this.checked : this.value;
+				if (value) {
+					if (/^(threshold|size|fontSize|fontZoom|vertical|fontColor|backgroundColor|shadowOpacity|shadowColor|backgroundImgOpacity|watermarkImgOpacity|square|useOnes)$/.test(name)) {
+						Page.setting[name] = this.value;
+					}
+				}
+			});
+
+			Page.obj.$set = $(".js_set");
+			Page.nav();
+		}
+	}
+};
+
+;(function(){
+	// CI.setting.async = true;
+	// CI.setting.workerJs = "ci.js";
+	// CI.setting.random = false;
+	// CI.setting.orientation = true;
+	CI.setting.onerror = function(err) {
+		console.log(err);
+	};
+	Page.init();
+	$(".js_global_setting").trigger("change");
+})();
+
+</script>
+</html>
