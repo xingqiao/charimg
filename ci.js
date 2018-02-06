@@ -64,7 +64,6 @@ var CI = (function() {
 				s2 = size * 4,
 				isWoodcut = "threshold" in opts,
 				thresholdValue = opts.threshold > 0 ? opts.threshold * 255 : 127.5;
-				// thresholdValue = opts.threshold > 0 ? opts.threshold * 765 : 382.5;
 			for(var x = 0, p1 = 0, ix = 0; x < height; x += size, p1 += s1, ix++){
 				for(var y = 0, p2 = p1, iy = 0; y < width; y += size, p2 += s2, iy++){
 					var temp = [0, 0, 0],
@@ -101,7 +100,6 @@ var CI = (function() {
 					// 计算马赛克化后的颜色值
 					if (isWoodcut) {
 						// 去色
-						// temp[0] = (temp[0] + temp[1] + temp[2]) / pixelNum;	// js大数乘法性能弱于除法
 						temp[0] = (temp[0] * 0.299 + temp[1] * 0.587 + temp[2] * 0.114) / pixelNum;	// js大数乘法性能弱于除法
 						if (temp[0] > thresholdValue) {
 							temp[0] = temp[1] = temp[2] = 255;
@@ -373,11 +371,7 @@ var CI = (function() {
 					reader.onerror = function (e) {
 						callback && callback("FileReader解析失败");
 					};
-					// if (/BinaryString/.test(type)) {
-					// 	reader.readAsBinaryString(file);
-					// } else {
-						reader.readAsDataURL(file);
-					// }
+					reader.readAsDataURL(file);
 				}
 			} catch (ex) {
 				callback && callback(ex);
@@ -405,19 +399,25 @@ var CI = (function() {
 			var reader = new FileReader();
 			function _readFile(pos, size, callback) {
 				reader.onload = function(e) {
+					var err, data;
 					if (this.result && this.result.byteLength > 0) {
 						try {
-							var data = new Uint8Array(this.result, 0, this.result.byteLength);
-							callback && callback(null, pos, data);
+							data = new Uint8Array(this.result, pos, this.result.byteLength);
 						} catch (ex) {
-							callback && callback(ex);
+							err = ex;
 						}
 					} else {
-						callback && callback("File End");
+						err = "File End";
 					}
+					callback && callback(err, pos, data);
 				};
 				try {
-					reader.readAsArrayBuffer(file.slice(pos, size));
+					var _file = file;
+					if (file.slice) {
+						_file = file.slice(pos, size);
+						pos = 0;
+					}
+					reader.readAsArrayBuffer(_file);
 				} catch (ex) {
 					callback && callback(ex);
 				}
@@ -440,12 +440,12 @@ var CI = (function() {
 				if (data[0] == 0xFF && data[1] == 0xE1) {
 					// 判断是否是 Exif
 					if (data[4] == 0x45 && data[5] == 0x78 && data[6] == 0x69 && data[7] == 0x66) {	// Exif
-						callback && callback(null, pos + 10, data.slice(10))
+						callback && callback(null, pos + 10, Array.prototype.slice.call(data, 10));
 					} else {
 						callback && callback("Not Exif");
 					}
 				} else {
-					pos += _parseNum(true, data, 2, 2);
+					pos += _parseNum(true, data, 2, 2) + 2;
 					_readFile(pos, 8000, function(err, pos, data) {
 						if (err) {
 							callback && callback(err);
@@ -459,13 +459,13 @@ var CI = (function() {
 			// 读取文件比较耗费时间，所以一次性预读取1K数据
 			_readFile(0, 8000, function(err, pos, data) {
 				// 判断是否是jpeg格式
-				if (data[0] == 0xFF && data[1] == 0xD8) {
+				if (data && data[0] == 0xFF && data[1] == 0xD8) {
 					pos += 2;
 
 					// 获取 Exif 内容
-					_getExif(pos, data.slice(2), function(err, pos, data) {
+					_getExif(pos, Array.prototype.slice.call(data, 2), function(err, pos, data) {
 						if (err) {
-							return callback && callback("Not Exif");
+							return callback && callback("No Exif");
 						}
 
 						// 字节序
@@ -495,7 +495,7 @@ var CI = (function() {
 								return callback && callback(null, orientation);
 							}
 
-							offset += 12;
+							offset += 12;	// 每个标签大小是12字节
 						}
 
 						callback && callback(null, 0);
@@ -514,7 +514,7 @@ var CI = (function() {
 			}
 			opts || (opts = {});
 			var ci = this, type, orientation = opts.orientation == null ? setting.orientation : opts.orientation;
-			if (file && /image/.test(file.type)) {
+			if (file && (/image/.test(file.type) || !file.type)) {
 				this.getFileUrl(file, type, function(err, url) {
 					if (err) {
 						callback && callback(err);
@@ -747,7 +747,7 @@ var CI = (function() {
 		mosaic: function(canvas, opts, callback) {
 			opts = $.extend({}, opts);
 			if (canvas.tagName == "IMG") {
-				var c = this.loadImgToCanvas(canvas, {width: canvas.width, height: height});
+				var c = this.loadImgToCanvas(canvas, {width: canvas.width, height: canvas.height});
 				canvas = c.canvas;
 			}
 			var ctx = canvas.getContext("2d");
